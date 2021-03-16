@@ -5,16 +5,16 @@
 template <class T>
 struct Node {
     T data;
-    Node* next;
+    Node* next = nullptr;
 
-    Node() : next(nullptr) {}
+    Node() {}
     Node(const T& data, Node* next = nullptr) : data(data), next(next) {}
 };
 
 
 template <class T>
 class List {
-    Node<T>* first;
+    Node<T>* first = nullptr;
 
     void copyToEmptyList(const List& list) {
         Node<T>* current = nullptr;
@@ -24,7 +24,7 @@ class List {
 
 public:
 
-    List() : first(nullptr) {}
+    List() {}
 
     List(const List& list) {
         copyToEmptyList(list);
@@ -72,9 +72,26 @@ public:
         first = newFirst;
     }
 
+    Node<T>* pushBack(const T& data) {  // returns new node
+        if (empty()) return pushFront(data);
+        Node<T>* current = first;
+        while (current->next) current = current->next;
+        return insertAfter(data, current);
+    }
+
+    void popBack() {
+        if (empty()) return;
+        if (!first->next) {
+            popFront();
+            return;
+        }
+        Node<T>* current = first;
+        while (current->next->next) current = current->next;
+        eraseAfter(current);
+    }
+
     Node<T>* insertAfter(const T& data, Node<T>* prevNode = nullptr) {  // returns new node
-        if (!prevNode)
-            return pushFront(data);
+        if (!prevNode) return pushFront(data);
         prevNode->next = new Node<T>(data, prevNode->next);
         return prevNode->next;
     }

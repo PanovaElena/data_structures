@@ -66,15 +66,20 @@ TEST_F(TestList, pop_front_from_empty_list_does_nothing) {
     EXPECT_EQ(emptyList, emptyList);
 }
 
+TEST_F(TestList, can_push_back) {
+    emptyList.pushFront(1);
+    emptyList.pushBack(10);
+    EXPECT_EQ(emptyList.getFirst()->next->data, 10);
+}
+
+TEST_F(TestList, can_pop_back) {
+    list.popBack();
+    EXPECT_EQ(list.getFirst()->next->next, nullptr);
+}
+
 TEST_F(TestList, can_insert_after) {
     list.insertAfter(10, list.getFirst());
     EXPECT_EQ(list.getFirst()->next->data, 10);
-}
-
-TEST_F(TestList, can_insert_to_end) {
-    emptyList.pushFront(1);
-    emptyList.insertAfter(10, emptyList.getFirst());
-    EXPECT_EQ(emptyList.getFirst()->next->data, 10);
 }
 
 TEST_F(TestList, can_erase_after) {
@@ -82,8 +87,4 @@ TEST_F(TestList, can_erase_after) {
     EXPECT_EQ(list.getFirst()->next->data, 3);
 }
 
-TEST_F(TestList, can_erase_from_end) {
-    list.eraseAfter(list.getFirst()->next);
-    EXPECT_EQ(list.getFirst()->next->next, nullptr);
-}
 
