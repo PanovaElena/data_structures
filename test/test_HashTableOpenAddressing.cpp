@@ -1,4 +1,5 @@
-#include "hash_table.h"
+#include "HashTableOpenAddressing.h"
+#include "HashTableSeparateChaining.h"
 
 #include <string>
 #include <vector>
@@ -31,9 +32,8 @@ public:
 
 };
 
-typedef TestHashTable<HashTableOpenAddressing<std::string>> TestHashTableOpenAddressing;
-typedef TestHashTable<HashTableSeparateChaining<std::string>> TestHashTableSeparateChaining;
 
+typedef TestHashTable<HashTableSeparateChaining<std::string>> TestHashTableSeparateChaining;
 
 TEST_F(TestHashTableSeparateChaining, can_insert_and_find_first_element_if_collision) {
     for (int i = 0; i < 3; i++)
@@ -104,6 +104,8 @@ TEST_F(TestHashTableSeparateChaining, repack_dont_break_table) {
     ASSERT_FALSE(table->isEmpty());
 }
 
+
+typedef TestHashTable<HashTableOpenAddressing<std::string>> TestHashTableOpenAddressing;
 
 TEST_F(TestHashTableOpenAddressing, can_insert_and_find_first_element_if_collision) {
     for (int i = 0; i < 3; i++)

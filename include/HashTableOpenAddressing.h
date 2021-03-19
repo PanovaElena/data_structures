@@ -1,133 +1,5 @@
 #pragma once
-#include "table.h"
-#include "list.h"
-#include <functional>
-#include <random>
-
-
-const size_t START_STORAGE_SIZE_DEG_HASH_TABLE = 4;  // start storage size = 2^4 = 16
-const double MAX_FILL_FACTOR = 0.7;
-
-// base class for hash tables
-// defines hash function
-template <class ElemType, class CellType>
-class HashTable : public TableByArray<ElemType, CellType> {
-
-protected:
-
-    size_t M = START_STORAGE_SIZE_DEG_HASH_TABLE;  // storage size is 2^M
-
-    size_t getStorageSize(size_t M) {  // returns 2^M
-        return size_t(1) << M;
-    }
-
-    // length of mashine word (32)
-    const size_t W = sizeof(uint32_t) * 8;
-
-    // "a" is a random parameter of the universal hash function
-    size_t a;
-
-    void setHashParameter() {
-        std::random_device rd;
-        std::default_random_engine randGen(rd());
-        std::uniform_int_distribution<uint32_t> dist;
-        a = (size_t)dist(randGen);
-    }
-
-    // universal hash function that can be computed fast
-    size_t hash(KeyType key) {
-        return (size_t)((uint32_t)(a * (uint64_t)key) >> (W - M));
-    }
-
-public:
-
-    HashTable(size_t M = START_STORAGE_SIZE_DEG_HASH_TABLE) :
-        M(M), TableByArray<ElemType, CellType>(getStorageSize(M)) {
-        setHashParameter();
-    }
-
-    void clear() override {
-        TableByArray<ElemType, CellType>::clear();
-        M = START_STORAGE_SIZE_DEG_HASH_TABLE;
-        storage.resize(getStorageSize(M));
-    }
-
-};
-
-
-// class for a hash table with separate chaining (cell is a list)
-template <class ElemType>
-class HashTableSeparateChaining : public HashTable<ElemType,
-    List<std::pair<KeyType, ElemType>>> {
-
-protected:
-
-    // repack if table is almost filled
-    void repack() {
-        M += size_t(1);   // double the storage size
-        std::vector<List<std::pair<KeyType, ElemType>>> tmp(getStorageSize(M));  // new storage
-        std::swap(tmp, storage);
-
-        // insertion of all elements again
-        size = 0;
-        for (size_t i = 0; i < tmp.size(); i++)
-            for (auto ptr = storage[i].getFirst(); ptr; ptr = ptr->next)
-                insert(ptr->data.first, ptr->data.second);
-    }
-
-    using BaseClass = HashTable<ElemType, List<std::pair<KeyType, ElemType>>>;
-
-public:
-
-    HashTableSeparateChaining(size_t M = START_STORAGE_SIZE_DEG_HASH_TABLE) :
-        BaseClass(M) {}
-
-    // search O(1) on the average
-    std::pair<KeyType, ElemType>* find(const KeyType& key) override {
-        size_t hashValue = hash(key);
-        List<std::pair<KeyType, ElemType>>& cellList = storage[hashValue];
-
-        auto ptr = cellList.getFirst();
-        for (; ptr; ptr = ptr->next)
-            if (ptr->data.first == key) break;
-
-        if (!ptr) return nullptr;
-        return &(ptr->data);
-    }
-
-    // insertion O(1) on the average
-    bool insert(const KeyType& key, const ElemType& elem) override {
-        if (find(key)) return false;  // key already exists
-
-        // if table is almost full then repack
-        if (size >= size_t(MAX_FILL_FACTOR * storage.size()))
-            repack();
-
-        size_t hashValue = hash(key);
-        storage[hashValue].pushFront(std::make_pair(key, elem));
-        size++;
-
-        return true;
-    }
-
-    // erasing O(1) on the average
-    bool erase(const KeyType& key) override {
-        if (!find(key)) return false;  // key does not exists
-
-        size_t hashValue = hash(key);
-        List<std::pair<KeyType, ElemType>>& cellList = storage[hashValue];
-
-        auto ptr = cellList.getFirst();
-        Node<std::pair<KeyType, ElemType>>* prevPtr = nullptr;
-        for (; ptr; ptr = ptr->next)
-            if (ptr->data.first == key) break;
-            else prevPtr = ptr;
-
-        storage[hashValue].eraseAfter(prevPtr);
-        size--;
-    }
-
-};
+#include "Table.h"
 
 
 // all cells of open addressing hash table contain some labels
@@ -147,6 +19,7 @@ struct HashTableOpenAddressingCell {
         data(std::pair<KeyType, ElemType>(first, second)),
         is_cell_empty(flag1), is_element_was_deleted(flag2) {}
 };
+
 
 // class for a hash table with open addressing
 template <class ElemType>
@@ -216,7 +89,7 @@ public:
         if (findCell(key)) return false;  // key already exists
 
         // if table is almost full then repack
-        if (size >= size_t(MAX_FILL_FACTOR * storage.size()))
+        if (size >= size_t(MAX_FILL_FACTOR_HASH_TABLE * storage.size()))
             repack();
 
         size_t hashValue = hash(key);

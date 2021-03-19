@@ -1,5 +1,7 @@
-#include "ordered_unordered_table.h"
-#include "hash_table.h"
+#include "OrderedTable.h"
+#include "UnorderedTable.h"
+#include "HashTableOpenAddressing.h"
+#include "HashTableSeparateChaining.h"
 
 #include <string>
 
